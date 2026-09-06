@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>23 天学习总计划 v2（四线：YOLO × BEV × 题库 × 训练实战）</title>
+<style>
+:root{
+  --bg:#0f1117; --card:#171a21; --line:#2a2f3a;
+  --fg:#d8dee9; --dim:#8b93a7; --acc:#5ec8f8; --acc2:#7ee787;
+  --warn:#f0883e; --err:#ff7b72; --purple:#c9a0ff; --train:#f0883e;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);
+  font:15.5px/1.8 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;}
+.wrap{max-width:1300px;margin:0 auto;padding:36px 22px 120px}
+h1{font-size:30px;margin:0 0 6px;color:#fff}
+.sub{color:var(--dim);font-size:14px;margin-bottom:24px}
+h2{font-size:22px;margin:48px 0 14px;padding:10px 0 10px 16px;color:#fff;
+   border-left:5px solid var(--acc);background:linear-gradient(90deg,#1b2430,transparent)}
+h3{font-size:17px;margin:28px 0 10px;color:var(--acc2)}
+p{margin:10px 0}
+code{background:#232833;padding:2px 6px;border-radius:4px;font-size:13.5px;
+  font-family:"SF Mono",Menlo,monospace;color:#ffd479}
+pre{background:#11141a;border:1px solid var(--line);border-radius:9px;
+  padding:14px 16px;overflow-x:auto;font-size:13px;line-height:1.6;
+  font-family:"SF Mono",Menlo,monospace;color:#c8d3e0}
+.box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 18px;margin:16px 0}
+.key{border-left:5px solid var(--acc2)}
+.warn{border-left:5px solid var(--warn)}
+.err{border-left:5px solid var(--err)}
+.box .hd{font-weight:700;margin-bottom:6px}
+.key .hd{color:var(--acc2)}.warn .hd{color:var(--warn)}.err .hd{color:var(--err)}
+table{border-collapse:collapse;width:100%;margin:14px 0;font-size:13px}
+th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:#1f242e;color:#fff;font-weight:600;white-space:nowrap}
+tr:nth-child(even) td{background:#151920}
+.day{color:var(--warn);font-weight:700;white-space:nowrap;font-family:monospace}
+.ms td{background:#1a2d1f!important}
+.ty{color:var(--acc2)}.tb{color:var(--acc)}.td2{color:var(--purple)}.tr4{color:var(--train)}
+.tag{display:inline-block;font-size:11px;padding:0 7px;border-radius:8px;margin-right:5px;white-space:nowrap}
+.tag.y{background:#1d3b26;color:var(--acc2)}
+.tag.b{background:#1d3b52;color:var(--acc)}
+.tag.d{background:#2d1d4a;color:var(--purple)}
+.tag.t{background:#4a2d1a;color:var(--train)}
+ul,ol{padding-left:22px}li{margin:5px 0}
+.small{font-size:13px;color:var(--dim)}
+hr{border:none;border-top:1px solid var(--line);margin:36px 0}
+.toc{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 22px;font-size:14px}
+.toc a{color:var(--acc);text-decoration:none;display:block;padding:3px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>23 天学习总计划 <span style="color:var(--warn)">v2</span></h1>
+<div class="sub">
+四线合一：YOLO 六阶段 × BEVFusion 主干+四优化点 × 题库 23 题 × <b style="color:var(--train)">训练实战 8 连（新增）</b> —— 零删减<br>
+周期：<b>2026-08-15（五）～ 2026-09-06（日）</b>，共 23 天 ｜ 每日约 11 小时<br>
+配套：<code>学习总计划_23天_v2.xlsx</code> ｜ 本版取代 21 天版（两个 21天 文件可删）
+</div>
+
+<div class="box warn">
+<div class="hd">v2 相对 v1 改了什么（回应两条批评，都成立）</div>
+<b>① 补上了重点项目</b>（5/4、5/5 两节课 = 简历项目四的课程版）：视频在 <code>36期课程视频/</code>，
+资料在 <code>YOLO重点项目/</code>（技术方案 PDF、PT检测实验报告、pt_源码解析.pptx、AIInferenceBase 源码包、11 张原始大图样本、<b>调优经验分享.docx</b>）。
+安排在 D21–D23，不只是看课——<b>用公开数据集完整复刻一遍</b>。<br><br>
+<b>② 训练实战升为第四条主线</b>：v1 把训练当知识点的附属品（3 次、全后台），v2 改为 <b>8 次训练贯穿全程</b>，
+每次带假设、带调参记录、带曲线分析；并新增<b>破坏性调试练习</b>——故意把训练搞崩再修好，
+专治"官方代码没 bug、从没机会调试"这个缺口。<br><br>
+代价：21 天 → <b>23 天</b>（重点项目复刻需要 2 个真实白天块；其余训练靠后台等待期，不加天数）。<br><br>
+<b>🔷 v2.1 裁剪（原则：砍冗余、留手写骨干，省出的块一律作缓冲）</b><br>
+① 任务C 并入 任务D 第一步（写前向本来就是 D 的开头）；
+② 任务E 已并入 R2 超参矩阵；
+③ <b>任务F 标记已完成</b>——你写过的 <code>Mnist_train_standard.py</code>+推理脚本就是它，只补一步与 numpy 版精度对比；
+④ 任务H 降级为改造：在现有脚本上加 checkpoint 断点续训（约 0.5h），不从零写；
+⑤ 任务P letterbox 降为浮动项；
+⑥ 精讲 HTML 已覆盖的 5 节课，<b>视频只看 debug 段</b>，内容以 HTML 为准（最大的时间节省来自这条）；
+⑦ 30 个配套脚本不要求全跑，只跑没见过的知识点。<br>
+<b>绝不砍的手写骨干</b>：任务D（反向传播）、G（autograd 对拍）、I（conv2d）、O（v5 解码）、R（DFL 解码）+ 题库——全是"空文件手写"型，治的正是短板，也是笔试/面试的直接弹药。
+</div>
+
+<div class="toc">
+<a href="#p1">一、训练实战线：8 连的设计（v2 核心新增）</a>
+<a href="#p2">二、重点项目复刻方案（D21–D23）</a>
+<a href="#p3">三、四条线内容清单与去重映射（承接 v1）</a>
+<a href="#p4">四、每日节奏 + 训练实战的三条铁律</a>
+<a href="#p5">五、23 天逐日安排（总表）</a>
+<a href="#p6">六、里程碑与验收</a>
+<a href="#p7">七、风险与应对</a>
+</div>
+
+<!-- ============================================ -->
+<h2 id="p1">一、训练实战线：8 连的设计</h2>
+
+<p>原则：<b>训练的等待期在后台，占用的是"启动前的准备"和"结束后的分析"</b>。
+所以 8 次训练里只有重点项目复刻需要独立白天块，其余全部挂在已有任务上，但把它们从"附属品"升级为"有假设、有记录、有结论"的正式实验。</p>
+
+<table>
+<tr><th>#</th><th>训练</th><th>数据集</th><th>要回答的问题（假设）</th><th>日期</th><th>产出</th></tr>
+<tr><td>R1</td><td>NumPy MLP 训到 &gt;95%（任务D）</td><td>MNIST(1万)</td><td>手写反传真的能训动网络吗</td><td>D4</td><td>训练日志 + 梯度校验</td></tr>
+<tr><td>R2</td><td>超参矩阵扫描（任务E扩展）</td><td>MNIST</td><td>lr {1.0 / 0.1 / 1e-3} × batch {16 / 256}，六组曲线各是什么形状、为什么</td><td>D5</td><td>六曲线对比图 + 每组一句结论</td></tr>
+<tr><td>R3</td><td>ResNet BasicBlock（任务K）</td><td>CIFAR10 子集</td><td>数据增强开/关，过拟合差多少（两组对照）</td><td>D11-12</td><td>两组曲线 + 调参记录表</td></tr>
+<tr><td>R4</td><td>DepthNet 加深短训（点2）</td><td>nuScenes mini</td><td>加深后深度误差怎么变</td><td>D13 过夜</td><td>修改 diff + 前后指标</td></tr>
+<tr><td>R5</td><td><b>★ 破坏性调试 5 连</b></td><td>coco128 + YOLOv8n</td><td>先跑通 sanity 训练，然后<b>故意制造 5 类故障并修复</b>：<br>① 标签格式错（cls x y w h 顺序打乱）② lr=10 训到 NaN ③ 类别数与 yaml 不匹配 ④ 图片路径 30% 失效 ⑤ batch 开大到显存爆</td><td>D14-15 晚</td><td><b>故障-症状-定位-修复 五连记录</b></td></tr>
+<tr><td>R6</td><td>YOLOv8 改进对比（任务T）</td><td>coco128/VOC子集</td><td>P2 头 / GIoU / CA 各自涨不涨、为什么</td><td>D20-22 后台</td><td>mAP 对比表 + 涨跌分析</td></tr>
+<tr><td>R7</td><td><b>★ 重点项目复刻（三轮）</b></td><td>NEU-DET 钢材缺陷(约1800张)</td><td>见下节 —— baseline → 两轮调优的完整闭环</td><td>D21-23</td><td>实验报告（按 PT检测实验报告 格式）</td></tr>
+<tr><td>R8</td><td>CenterPoint mini 短训（浮动）</td><td>nuScenes mini</td><td>lidar-only 3D 检测训练长什么样</td><td>插空/可砍</td><td>训练日志</td></tr>
+</table>
+
+<div class="box key">
+<div class="hd">R5 破坏性调试为什么是 v2 最重要的新增</div>
+你的原话：官方代码肯定没 bug，所以从没有过"调试训练"的机会。<br>
+入职后的真实场景恰恰相反：<b>公司代码 + 你的改动 + 你的数据，天天出错</b>。
+调试能力没法看视频学，只能靠"见过这个症状"。R5 就是提前把最常见的五种症状各见一遍：
+<b>loss=NaN 长什么样、标签错位时 mAP 曲线什么形状、显存爆时报错信息在哪层</b>。
+每个故障都记录"症状→怎么定位→怎么修"，这份五连记录入职后就是你自己的排障手册。
+</div>
+
+<!-- ============================================ -->
+<h2 id="p2">二、重点项目复刻方案（D21–D23）</h2>
+
+<p>课程只给了 11 张原始样图，没有完整数据集，所以<b>看课学它的方法论，用公开数据集复刻它的全流程</b>：</p>
+
+<table>
+<tr><th>课程项目（焊缝缺陷）</th><th>复刻载体（NEU-DET 钢材表面缺陷）</th></tr>
+<tr><td>5472×3648 大图、缺陷占比&lt;1%</td><td>200×200 六类缺陷、1800 张——规模小但<b>调优链路完全同构</b>，4060 Ti 约半小时一轮，一晚能跑 3 组</td></tr>
+<tr><td>切图放大 / P2 头 / 难负样本 / 类内 NMS</td><td>逐条按《调优经验分享.docx》的 playbook 走：数据分析（GT 分布/质量）→ 离线增强 → 训练 → 分析 badcase → 第二轮</td></tr>
+<tr><td>《PT检测实验报告.doc》</td><td>照它的格式写<b>自己的实验报告</b>：每轮改了什么/为什么/结果</td></tr>
+</table>
+
+<pre>
+D21 下午   重点项目(1) 视频 2x + 技术方案PDF跳读 ｜ NEU-DET 下载转 YOLO 格式 ｜ baseline 起训(过夜)
+D22 上午   重点项目(2) 视频 2x + pt_源码解析.pptx + AIInferenceBase 源码浏览
+D22 下午   baseline 曲线/badcase 分析 → 按 playbook 定第一轮调优方案 → 起训
+D22 晚     第一轮结果分析 → 定第二轮方案 → 起训(过夜)
+D23 上午   第二轮收尾 + 写实验报告（PT检测实验报告格式）
+</pre>
+
+<div class="box key">
+<div class="hd">这 2.5 天买到的东西</div>
+① 一次<b>完全自己发起</b>的"数据→训练→调优→报告"闭环（此前从未有过）；<br>
+② 简历项目四被问到任何调优细节，都有<b>亲手做过的平行经验</b>兜底；<br>
+③ 《调优经验分享》那套 playbook 从"读过"变成"用过"——这正是中小公司 YOLO 岗考核的全部。
+</div>
+
+<!-- ============================================ -->
+<h2 id="p3">三、四条线内容清单与去重映射</h2>
+
+<p class="small">承接 v1（此处只列变化，完整清单见 xlsx）：</p>
+<ul>
+<li><span class="tag y">YOLO</span> 六阶段全保留 + <b>新增重点项目两节课</b>（视频在 <code>36期课程视频/2026_5_4*.mp4</code>、<code>2026_5_5*.mp4</code>）</li>
+<li><span class="tag b">BEV</span> 主干五步 + 四优化点 + IPM→LSS 练习 + CRF 浮动，不变</li>
+<li><span class="tag d">题库</span> 23 题不变；8 题主线覆盖的映射不变（B3/B5/B6/B7/B8/B9/B11/C3）</li>
+<li><span class="tag t">训练实战</span> R1–R8（上表）；每次训练强制产出<b>《调参记录表》</b>：改动 / 动机 / 结果 / 结论 四列</li>
+</ul>
+
+<!-- ============================================ -->
+<h2 id="p4">四、每日节奏 + 训练实战三条铁律</h2>
+
+<pre>
+08:30 – 12:30   上午 4h    YOLO（视频+敲代码）
+14:00 – 18:30   下午 4.5h  BEV / 重点项目（D21起）
+19:30 – 22:00   晚上 2.5h  题库 or 训练分析/破坏性调试 + 15min 笔记
+                任何时刻：后台可能有一个训练在跑
+</pre>
+
+<div class="box warn">
+<div class="hd">训练实战三条铁律</div>
+① <b>没有假设不开训</b>——每次点 train 之前先写一句"我想验证什么"，否则就是在烧电；<br>
+② <b>训练启动后立刻走人</b>——不盯曲线，设好日志回头看，白天块继续原任务；<br>
+③ <b>每次训练必留《调参记录表》一行</b>——改动/动机/结果/结论，23 天下来这张表就是你的"工程经验"实体。
+</div>
+
+<!-- ============================================ -->
+<h2 id="p5">五、23 天逐日安排</h2>
+
+<p class="small">与 v1 的差异行用 🔶 标出 ｜ 绿色=里程碑日 ｜ 详细拆解见 xlsx</p>
+
+<table>
+<tr><th>日</th><th>日期</th><th><span class="ty">上午 · YOLO</span></th><th><span class="tb">下午 · BEV/项目</span></th><th><span class="td2">晚上</span></th><th><span class="tr4">后台训练</span></th></tr>
+<tr><td class="day">D1</td><td>8/15 五</td><td>3_1/3_4 以精讲HTML为准（视频只看debug段）；任务D第①步：手写前向（原任务C并入）</td><td>环境盘点+baseline 推理；IPM练习①开写</td><td>A1 + A2 开写</td><td>—</td></tr>
+<tr><td class="day">D2</td><td>8/16 六</td><td>3_5 + 任务D 前向+loss</td><td>练习①收尾+练习②多平面Z；json token 链路</td><td>A2 收尾 + A3</td><td>—</td></tr>
+<tr><td class="day">D3</td><td>8/17 日</td><td>3_6 + 任务D 反传手写</td><td>练习③ 正向抛点（B7/B8✅）</td><td>A4 + A5</td><td>—</td></tr>
+<tr class="ms"><td class="day">D4</td><td>8/18 一</td><td>3_8 + 任务D 梯度校验全过 🏁①</td><td>点1 BEVPool v1 对拍（B9✅）</td><td>A6 开写</td><td>R1 MLP训练</td></tr>
+<tr><td class="day">D5</td><td>8/19 二</td><td>🔶 <b>R2 超参矩阵</b>（6组曲线，原任务E并入）；任务F ✅已完成（=Mnist_train_standard.py），补numpy版精度对比</td><td>点1 测速显存 + 读 v2 kernel</td><td>A6 收尾</td><td>R2 六组</td></tr>
+<tr><td class="day">D6</td><td>8/20 三</td><td>任务G autograd_check；任务H改造：现有脚本加checkpoint续训（0.5h）→ 阶段二验收；余时=缓冲</td><td>主干① 数据流</td><td>A7 + A8</td><td>—</td></tr>
+<tr><td class="day">D7</td><td>8/21 四</td><td>3_11+3_13 + 任务I 开写</td><td>主干② 图像支路</td><td>周复盘①</td><td>—</td></tr>
+<tr><td class="day">D8</td><td>8/22 五</td><td>任务I conv2d 对齐★</td><td>点4 CBGS（C3✅）</td><td>B1</td><td>—</td></tr>
+<tr><td class="day">D9</td><td>8/23 六</td><td>3_15+任务J；cnn-1/2</td><td>主干③ lidar 支路（B5/B6✅）</td><td>B2 开写</td><td>—</td></tr>
+<tr><td class="day">D10</td><td>8/24 日</td><td>3_18+cnn-3+任务K 开写</td><td>点3① 点云投影（B3✅）</td><td>B2 对拍★</td><td>—</td></tr>
+<tr><td class="day">D11</td><td>8/25 一</td><td>3_20+3_22+任务L；🔶 <b>R3 起训（增强开/关两组）</b></td><td>点3② 运动补偿（B11✅）</td><td>B4</td><td>R3 两组</td></tr>
+<tr class="ms"><td class="day">D12</td><td>8/26 二</td><td>cnn-4~7 扫尾 + 🔶 R3 两组曲线对比 → 阶段三验收 🏁②</td><td>点3③ 稠密深度图</td><td>B10</td><td>—</td></tr>
+<tr><td class="day">D13</td><td>8/27 三</td><td>3_31+4_2+两份PDF</td><td>点2 DepthNet(R4 过夜) + 融合点定位</td><td>B12 + 指标笔记</td><td>R4 过夜</td></tr>
+<tr><td class="day">D14</td><td>8/28 四</td><td>4_7+4_8 + 任务N 开始</td><td>主干④ 训练循环+检测头</td><td>🔶 周复盘② + <b>R5 sanity+故障①②</b></td><td>R5 coco128</td></tr>
+<tr><td class="day">D15</td><td>8/29 五</td><td>4_9 + 任务N 流水表★★</td><td>R4 结果分析 + 点3 收尾（depth loss 接入点）</td><td>🔶 <b>R5 故障③④⑤ + 五连记录</b></td><td>—</td></tr>
+<tr><td class="day">D16</td><td>8/30 六</td><td>4_14 + 任务O 开写★★★</td><td>主干⑤ 融合消融</td><td>C1 开写</td><td>—</td></tr>
+<tr class="ms"><td class="day">D17</td><td>8/31 日</td><td>任务O 对齐★★★（任务P letterbox 降为浮动）🏁③；余时=缓冲</td><td>三层优化叙事文档 🏁④</td><td>周复盘③ + C1 收尾 + 题库清账</td><td>—</td></tr>
+<tr><td class="day">D18</td><td>9/1 一</td><td>4_16+4_21+任务Q → 阶段五验收</td><td>CRF 评估 + BEV 笔记补全</td><td>C2</td><td>—</td></tr>
+<tr><td class="day">D19</td><td>9/2 二</td><td>4_12+4_15+4_17 + 任务R 开写</td><td>GitHub 化①</td><td>任务R 收尾</td><td>—</td></tr>
+<tr><td class="day">D20</td><td>9/3 三</td><td>4_19+4_22 + 任务S</td><td>🔶 R6 任务T 三组起训 + GitHub 化②</td><td>面试演练（BEVPool 口述+三分法）</td><td>R6 三组</td></tr>
+<tr><td class="day">D21</td><td>9/4 四</td><td>4_24+4_26 + R6 中期看曲线 → 阶段六课程收口</td><td>🔶 <b>重点项目(1) 视频 + 技术方案 PDF；NEU-DET 转 YOLO 格式；R7 baseline 起训</b></td><td>🔶 R7 曲线/badcase 分析</td><td>R7 baseline 过夜</td></tr>
+<tr><td class="day">D22</td><td>9/5 五</td><td>🔶 <b>重点项目(2) 视频 + pt_源码解析 + AIInferenceBase 源码浏览</b></td><td>🔶 R6 收 mAP 对比表；R7 第一轮调优（按 playbook）起训</td><td>🔶 R7 一轮结果→定二轮→起训（过夜）；简历个人项目段更新</td><td>R7 第二轮过夜</td></tr>
+<tr class="ms"><td class="day">D23</td><td>9/6 六</td><td>🔶 R7 第二轮收尾 + <b>写实验报告（PT报告格式）</b></td><td>总验收：四线检查表 + 《总复盘+面试弹药库》 🏁⑤</td><td>机动/欠账兜底</td><td>—</td></tr>
+</table>
+
+<!-- ============================================ -->
+<h2 id="p6">六、里程碑与验收</h2>
+
+<table>
+<tr><th>里程碑</th><th>日期</th><th>验收标准</th></tr>
+<tr><td>① 手写 MLP 反传</td><td>D4 · 8/18</td><td>四参数梯度校验 &lt;1e-6；MNIST&gt;95%；能口述回传路径</td></tr>
+<tr><td>② CNN 收口</td><td>D12 · 8/26</td><td>conv2d/pooling 逐元素对齐；R3 两组对照曲线有结论</td></tr>
+<tr><td>③ YOLOv5 解码对齐</td><td>D17 · 8/31</td><td>任务O 与官方完全一致；流水表成稿</td></tr>
+<tr><td>④ BEV 四点+主干收口</td><td>D17 · 8/31</td><td>四点可复跑；v1/v2 口述；叙事文档成稿</td></tr>
+<tr><td>⑤ 四线全收口</td><td>D23 · 9/6</td><td>题库 23/23；六阶段+重点项目验收全过；<b>训练 8 连的《调参记录表》和《故障五连记录》成稿</b>；GitHub 可展示；简历更新完</td></tr>
+</table>
+
+<div class="box key">
+<div class="hd">最终产出（比 v1 多了三样）</div>
+GitHub 仓库 ｜ 三层优化叙事文档 ｜ YOLOv5/v8 源码理解 ｜ 手写算子 23 题<br>
+🔶 <b>《调参记录表》</b>（8 次训练的改动/动机/结果/结论）｜
+🔶 <b>《故障五连排障记录》</b> ｜
+🔶 <b>NEU-DET 缺陷检测实验报告</b>（简历项目四的平行证据）
+</div>
+
+<!-- ============================================ -->
+<h2 id="p7">七、风险与应对</h2>
+<table>
+<tr><th>风险</th><th>规则</th></tr>
+<tr><td>面试日</td><td>被占的块当晚补核心任务，其余顺延不砍；面完 30 分钟记录被问倒的题</td></tr>
+<tr><td>环境地狱</td><td>D1 下午限 3h，不通切 docker；NEU-DET 下载失败则换 coco128 子集复刻（流程不变）</td></tr>
+<tr><td>训练排队</td><td>4060 Ti 单卡排队优先级：R7 &gt; R6 &gt; R4 &gt; R3 &gt; R8；R8 浮动可砍</td></tr>
+<tr><td>卡死超时</td><td>超预算 1.5 倍 → 带具体卡点求助，不闭门硬磨</td></tr>
+<tr><td>滑坡兜底</td><td>D23 机动块 → 周复盘晚块 → 整体顺延（不减内容只延时间）</td></tr>
+</table>
+
+<div class="box warn">
+<div class="hd">三条底线（不变）</div>
+① 块内不切换；② 对拍不过不算完成，<b>训练没记录不算训过</b>；③ 22:00 停。
+</div>
+
+</div>
+</body>
+</html>

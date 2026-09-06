@@ -1,0 +1,24 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//study_doc_Obsidian//面试日程//CN
+BEGIN:VEVENT
+UID:0824-yunjie@study-doc
+DTSTAMP:20260821T100000Z
+DTSTART:20260824T140000
+DTEND:20260824T153000
+SUMMARY:面试｜云洁机器人（云洁科技） 融合感知算法工程师 一面 · BOSS视频
+DESCRIPTION:BOSS 直聘视频面试间（BOSS 上已点「接受面试」）。\n面试官：赵先生 · 总经理｜联系人：彭女士\n岗位：融合感知算法工程师 25-45K\n面试间链接：https://zpurl.cn/kPVl9b14bUT （面试间已开放 可提前进去调试）\n⚠ 当天第 4 场：15:30 结束到 16:00 励微只有 30 分钟缓冲 面完立刻切环境。
+URL:https://zpurl.cn/kPVl9b14bUT
+LOCATION:BOSS 视频面试间 https://zpurl.cn/kPVl9b14bUT
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:30分钟后面试：关AI补全 / scratch.py / 开终端 / 测共享 / 扫错题本
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT10M
+ACTION:DISPLAY
+DESCRIPTION:10分钟后面试（云洁机器人 BOSS 面试间 可提前进入）
+END:VALARM
+END:VEVENT
+END:VCALENDAR

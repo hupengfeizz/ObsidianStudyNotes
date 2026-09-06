@@ -1,0 +1,28 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//study_doc_Obsidian//面试日程//CN
+BEGIN:VEVENT
+UID:0824-shenchengjiao@study-doc
+DTSTAMP:20260821T100000Z
+DTSTART:20260824T110000
+DTEND:20260824T120000
+SUMMARY:面试｜深城交（城交科技） 感知算法 一面
+DESCRIPTION:HR 陈明。会邀时间 8/24 上午 11:00–12:00（已向 HR 复核 待最终确认）。\n产品线待定：小车 / 小巴 —— 已答复「都可以」倾向小巴（更接近乘用车）小车含机器人部分。\n⚠ 会议链接尚未收到 面试前一天务必找 HR 要链接/腾讯会议号。
+LOCATION:线上（会议链接待 HR 提供）
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:明天 11:00 深城交面试 —— 会议链接还没拿到就去问 HR 陈明
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:30分钟后面试：关AI补全 / scratch.py / 开终端 / 测共享 / 扫错题本
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT10M
+ACTION:DISPLAY
+DESCRIPTION:10分钟后面试（深城交 感知算法）
+END:VALARM
+END:VEVENT
+END:VCALENDAR

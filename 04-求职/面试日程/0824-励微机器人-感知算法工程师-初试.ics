@@ -1,0 +1,24 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//study_doc_Obsidian//面试日程//CN
+BEGIN:VEVENT
+UID:0824-liweirobot@study-doc
+DTSTAMP:20260821T100000Z
+DTSTART:20260824T160000
+DTEND:20260824T163000
+SUMMARY:面试｜励微机器人 感知算法工程师 线上初试 · 企业微信
+DESCRIPTION:线上初试（企业微信会议）。面试官：黄金勇。发起人：Yang Liu。\n会议号：727-572-366\n链接：https://work.weixin.qq.com/webapp/tm/yE4fl7z2Zp6\n邀约写 30 分钟 按 90 分钟留缓冲。
+URL:https://work.weixin.qq.com/webapp/tm/yE4fl7z2Zp6
+LOCATION:企业微信会议 727-572-366
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:30分钟后面试：关AI补全 / scratch.py / 开终端 / 测共享 / 扫错题本
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT10M
+ACTION:DISPLAY
+DESCRIPTION:10分钟后面试（励微机器人 会议号 727-572-366）
+END:VALARM
+END:VEVENT
+END:VCALENDAR

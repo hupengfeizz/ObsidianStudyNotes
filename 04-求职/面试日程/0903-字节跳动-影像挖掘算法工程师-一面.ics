@@ -1,0 +1,29 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//study_doc_Obsidian//面试日程//CN
+BEGIN:VEVENT
+UID:0903-bytedance@study-doc
+DTSTAMP:20260823T154500Z
+DTSTART:20260903T190000
+DTEND:20260903T203000
+SUMMARY:面试｜字节跳动 影像挖掘算法工程师·地理位置中台 一面 · 飞书
+DESCRIPTION:飞书视频面试。会邀未写时长，按 90 分钟预留（19:00–20:30）。\n链接：https://t.zijieimg.com/wyzTWTa1aGA/\n进入方式一（PC 装了 Chrome/360）：浏览器打开链接 → 落地页点「使用网页版加入面试」→ 身份验证登录后进入。\n进入方式二（PC 无 Chrome/360，或手机）：打开链接 → 落地页点「打开飞书」或「加入面试」→ 需先装最新版飞书。\n⚠ 方向和前面几场不同：影像挖掘 / 地理位置中台，偏 2D 图像与数据挖掘，不是自动驾驶 BEV，准备重点要换。
+URL:https://t.zijieimg.com/wyzTWTa1aGA/
+LOCATION:飞书视频面试
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:明天 19:00 字节跳动一面 —— 今天先用 Chrome 打开链接测一遍网页版能不能进
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT30M
+ACTION:DISPLAY
+DESCRIPTION:30分钟后面试：关AI补全 / scratch.py / 开终端 / 测共享 / 扫错题本
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT10M
+ACTION:DISPLAY
+DESCRIPTION:10分钟后面试（字节跳动 影像挖掘算法工程师·地理位置中台）
+END:VALARM
+END:VEVENT
+END:VCALENDAR

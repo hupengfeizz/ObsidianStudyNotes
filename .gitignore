@@ -1,0 +1,37 @@
+# ============ 大文件：留在本地，不进仓库 ============
+# 这些文件不会被删除，只是不同步。想同步某个文件时把它从这里放出来即可。
+*.pdf
+*.ppt
+*.pptx
+*.doc
+*.docx
+*.xls
+*.xlsx
+*.mp4
+*.mov
+*.zip
+*.tgz
+
+# ============ Obsidian 工作区状态（每次开关软件都变，不排除会天天冲突）============
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache
+.obsidian/plugins/*/data.json.bak
+
+# ============ 主题（9.3MB CSS，两端各自装同名主题即可）============
+.obsidian/themes/
+
+# ============ 系统垃圾 ============
+.DS_Store
+.trash/
+Thumbs.db
+
+# ============ Google Drive / iCloud 同步残留 ============
+.tmp.driveupload/
+.tmp.drivedownload/
+.shortcut-targets-by-id/
+.Encrypted/
+*.icloud
+.DocumentRevisions-V100/
+.fseventsd/
+.Spotlight-V100/
