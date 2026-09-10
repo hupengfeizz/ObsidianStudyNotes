@@ -3,8 +3,9 @@ tags: [智谷36期, Tensor维度运算, view, reshape, permute, transpose, Batch
 视频: 2026_3_22高维Tensor维度运算+ResNet34训练代码结构
 老师: 谢博
 时长: 05:05:15
-材料: whisper校正版转写 + 抽帧(_总览61张sheet / 精读单帧14张)
+材料: whisper校正版转写 + 抽帧(_总览61张sheet / 精读单帧14张 + 04:10–04:20 补读单帧16张)
 生产日期: 2026-09-01
+修订日期: 2026-09-07（补 04:10:20–04:20:03 空洞段 7 张卡·全靠抽帧还原；卡片重排连续编号 01–56）
 ---
 
 # 2026_3_22 高维 Tensor 维度运算 + ResNet34 训练代码结构 · 逐意群精讲
@@ -48,6 +49,13 @@ tags: [智谷36期, Tensor维度运算, view, reshape, permute, transpose, Batch
 03:30:00 Roboflow 下载 18591 张蔬菜分类数据集
 03:43:03 让豆包写 ResNet34 → 拆解 conv1 / _make_layer / ResidualBlock / avgpool / fc
 04:05:00 416 能不能进这个网络？416→208→104→52→26→13 ✓（总步长 32）
+04:10:20–04:20:03 【语音全废·纯画面】ResNet34 分块代码逐行落地
+  ├─ 核对数据集实物（18,592 项 / 416×416）→ num_classes 该填几
+  ├─ 让豆包数类别名 → 它答"26 项 25 逗号"，真值是 25 项 24 逗号（B-5 的现场）
+  ├─ 论文 Figure 3（VGG-19 / plain-34 / ResNet-34）：实线 vs 虚线 shortcut
+  ├─ 虚线的代码实证：`if stride != 1 or in_channels != out_channels`
+  ├─ 屏幕手画：红框套四个绿框（layer1~4）+ 打勾的输出层
+  └─ forward 三段式 + 现场加 `nn.Softmax(dim=1)` → debug 看 (1,26) 概率
 04:20:03 Dataset 三件套 + 相对路径与 PyCharm 工作目录
 04:45:00 数据集要自己检查（3 分算法 7 分数据）→ 断点验证 image 和 label 对没对上
 ```
@@ -58,12 +66,13 @@ tags: [智谷36期, Tensor维度运算, view, reshape, permute, transpose, Batch
 |---|---|---|
 | 维度运算主例 | `x = torch.arange(64).view(2, 4, 8)` | 【画面】tensor_op.py 17:03 |
 | 主例的值 | `[[[0..7],[8..15],[16..23],[24..31]], [[32..39],[40..47],[48..55],[56..63]]]` | 【画面】调试器 Console |
-| SimpleCNN | `Conv2d(3,16,k3,s1,p1)` → `ReLU` → `Conv2d(16,32,k3,s2,p1)` | 【画面】cnn_network.py |
+| SimpleCNN（**演示道具，无 BN**） | `Conv2d(3,16,k3,s1,p1)` → `ReLU` → `Conv2d(16,32,k3,s2,p1)` → `Linear(8192,10)` | 【画面】cnn_network.py |
 | 形状链 | `(2,3,32,32)` →conv1→ `(2,16,32,32)` →conv2→ `(2,32,16,16)` | 【画面】调试器 15:38 |
 | 翻车例 | `randn(4,3,32,64)` → `x.view(4,3,-1)` → `RuntimeError ... size 65536` | 【画面】16:20 |
 | 全连接输入 | `nn.Linear(32*16*16, 10)` = **8192** | 【画面】fc1 in_features=8192 |
-| ResNet34 | layer1~4 = `[3,4,6,3]` 个 block，通道 `64/128/256/512` | 【画面】resnet.py 21:05 |
-| ResNet34 尺寸 | `(1,3,224,224)` → `(1,1000)`；layer2 `128×28×28`、layer4 `512×7×7` | 【画面】Run 输出 + 代码注释 |
+| ResNet34（**设计范例，BN 齐全**） | `conv1 = Conv2d(3,64,k7,s2,p3,bias=False)` + `bn1 = BatchNorm2d(64)` + `maxpool(3,2,1)`；layer1~4 = `[3,4,6,3]` 个 block，通道 `64/128/256/512` | 【画面 04_12_34】resnet.py |
+| ResNet34 尺寸 | `(1,3,224,224)` → `(1,1000)`，改 `num_classes` 后 → `(1,26)`；`3×224×224 → 64×112×112 → 64×56×56 → 128×28×28 → 256×14×14 → 512×7×7` | 【画面 04_10_48 / 04_12_34】Run 输出 + 代码注释 |
+| 类别数（**豆包翻车点**） | 豆包答"总标签项数 26 / 逗号 25"，真值是 **25 项 24 个逗号** | 【画面 04_11_57】豆包对话 + Run `标签长度: torch.Size([25])` |
 | 蔬菜数据集 | 18591 张训练图，原图 416×416，**25 类** one-hot | 【画面】Run "数据集总数量: 18591 / 标签长度: torch.Size([25])" |
 | DenseNet 通道 | 3 → 64 → 128 → 256 → 512（手写标注） | 【画面】PPT 第 149 页 / 共 296 页 |
 
@@ -669,7 +678,186 @@ tags: [智谷36期, Tensor维度运算, view, reshape, permute, transpose, Batch
 
 ---
 
-### 45 Dataset 三件套与 pandas 解析标签（04:31:30 – 04:35:00）
+> ⚠ **【04:10:20 – 04:20:03 这 10 分钟：语音不可用，以下 7 张卡全部由抽帧还原】**
+> 这一段老师绝大部分时间在指屏幕、划代码、手写标注，几乎不出声。Whisper 在这里彻底崩了——转写内容是孤立数字「7 7 8 9 9」、希伯来字符 `ות`、连续字母 `g g g g`，**没有一句可用的原话**。
+> 但画面上信息量极大（改类别数、论文原图、shortcut 代码、手画分块图、现场加 Softmax），所以下面 7 张卡的引用一律写成 `【画面 04_xx_xx】`，**不伪造任何"谢博说"**。这也是本课第四段幻觉区（前三段见纠错表 A 最后一行）。
+
+---
+
+### 45 先核对数据集实物：18,592 个项目、416×416（04:10:20 – 04:11:20）
+
+> **【画面 04_10_16 / 04_10_24】** Windows 文件资源管理器，地址栏 `此电脑 › Data (D:) › workspace-pycharm › deepseek › dataset › Vegetable › train`。左上角第一个文件是 `_classes.csv`（Excel 图标），后面全是图片，文件名形如 `0001_jpg.rf.2d9f246447408c139c1b66f2795d5d82.jpg`。状态栏：**`18,592 个项目`**；右侧详细信息面板：**`类型 JPG 文件 / 大小 47.7 KB / 分辨率 416 × 416`**。
+> **【画面 04_10_48】** 切回 PyCharm `resnet.py`，第 99 行此刻还是 `model = ResNet34(num_classes=1000)`，Run 面板打的是 `输出张量形状: torch.Size([1, 1000])`。
+
+- **【画面读出来的三件事】** ① `18,592 = 18591 张图 + 1 个 _classes.csv`——这正是后面 Run 输出 `数据集总数量: 18591` 的来历，两个数差 1 不是 bug，是那个 CSV；② 每张图**都是 416×416**，所以卡 43 那句"416 能不能进网络"不是随口举例，是这个数据集的真实尺寸；③ 那串 `rf.` 开头的哈希是 Roboflow 增强后重命名的痕迹，对应卡 38 说的"别人增强过的数据你控制不了"。
+- **【为什么这一步重要】** 老师做的是**把网络的出口和数据的入口对上**：网络现在吐 1000 类（ImageNet 的默认值），而数据集只有二十几类。这一分钟他其实在回答一个隐含问题——"豆包给我的模板，哪一个数字是必须我自己改的？"答案只有一个：`num_classes`。
+- **【★ 作者判断】** 这是本课"3 分算法 7 分数据"（卡 55）**第一次落地**，而且用的是最土的办法——打开文件夹看状态栏。别小看它：文件数、单张尺寸、标签文件在哪，这三件事在你写 Dataset 之前就该确认完。
+- **【落到动作】** 你做课程产出3 时，`dataset/` 建好后**先在终端跑一句** `ls train | wc -l` 和 `python -c "from PIL import Image;print(Image.open('xxx.jpg').size)"`，把"张数"和"尺寸"记到你的实验记录里，再动手写代码。
+
+---
+
+### 46 num_classes 到底填几？让豆包数类别——它数错了（04:11:20 – 04:12:20）
+
+> **【画面 04_11_17 / 04_11_39 / 04_11_57】** Chrome 打开 `doubao.com/chat/38417510042013186`，右半屏是豆包生成的 resnet 代码（`self.layer1 = self._make_layer(64, 3, st…` 一直到 `x = self.maxpool(x)`），左半屏老师把 `_classes.csv` 的表头贴进去，先让它按「原文---译文」翻译（`filename--- 文件名` / `Bitter_Gourd_new--- 新鲜苦瓜` / `Bottle_Gourd_new--- 新鲜葫芦瓜` / …），再贴一次完整名单问「**有多少个逗号**」。
+> 豆包的回答（原样）：`逗号总数：25 个` / `验证：` / `总标签项数 = 26 个` / `逗号数 = 项数 - 1 = 26 - 1 = 25`。
+> **【画面 04_12_05】** 老师回到 PyCharm，把第 99 行改成 `model = ResNet34(num_classes=26)`，右键调出菜单准备 `Run 'resnet'`。
+
+- **【把名单数一遍（我替你数了）】** 画面上那串名字是：`Bitter_Gourd_new, Bottle_Gourd_new, Brinjal_new, Capsicum_new, Cucumber_new, Tomato_new, apple, apple_rotten, banana, banana_rotten, capsicum, capsicum_rotten, guava, guava_rotten, lemon, mango, mango_rotten, orange, orange_rotten, pomegranate, pomegranate_rotten, strawberry, strawberry_rotten, tomato, tomato_rotten`——**一共 25 项、24 个逗号**。
+- **【所以豆包错了两次】** 它说「项数 26」（多算 1），又说「逗号 25」（多算 1），还自洽地用 `26 - 1 = 25` 把两个错圆了回去。**这是大模型最危险的一种错法：过程看着像推导，前提是编的。** 同一屏它给的分类摘要也对不上——写着「蔬菜（6 种）」，底下只列了 4 个（苦瓜、葫芦瓜、茄子、黄瓜）。
+- **【真值锚点】** `_classes.csv` 除 `filename` 列外有 **25 列 one-hot**，Run 输出 `标签长度: torch.Size([25])`（见卡 54）。**所以 `num_classes` 应该是 25，不是 26。** 老师此刻信了豆包填 26，一直到 04:50:01 自己数 CSV 列时才发现"豆包给的是错误信息"——纠错表 B-5 说的就是这一刻。
+- **【★ 作者判断】** 这一分钟的教学价值**远大于它的时长**：它现场演示了"AI 写完你就过了"会怎么翻车（卡 56 老师自己批评的那个坏习惯），而且翻的是最不起眼的一个整数。`num_classes` 填错 1，网络照样跑通、loss 照样下降，只是永远有一列学不到东西——**不报错的 bug 才是最贵的**。
+- **【落到动作】** 类别数这种数**永远从数据里算，不从对话框里抄**：`len(pd.read_csv('_classes.csv').columns) - 1`，一行的事。把这行写进你的 `check_dataset.py`。
+
+---
+
+### 47 改完重跑：conv1 / bn1 / maxpool 逐行对上，输出变成 (1, 26)（04:12:20 – 04:13:00）
+
+> **【画面 04_12_34】** PyCharm `resnet.py` 第 42–57 行，`# ---- 2. 定义完整 ResNet34 网络 ----`：
+> ```python
+> class ResNet34(nn.Module):
+>     def __init__(self, num_classes=1000):
+>         super(ResNet34, self).__init__()
+>         self.in_channels = 64                      # 初始通道数
+>
+>         # 首层：输入 3×224×224 → 64×112×112
+>         self.conv1 = nn.Conv2d(in_channels=3, out_channels=64, kernel_size=7, stride=2, padding=3, bias=False)
+>         self.bn1 = nn.BatchNorm2d(64)
+>         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)   # 64×56×56
+>
+>         # 4组残差层（ResNet34 标准配置：[3,4,6,3] 个残差块）
+>         self.layer1 = self._make_layer(out_channels=64,  num_blocks=3, stride=1)  # 64×56×56
+>         self.layer2 = self._make_layer(out_channels=128, num_blocks=4, stride=2)  # 128×28×28
+>         self.layer3 = self._make_layer(out_channels=256, num_blocks=6, stride=2)  # 256×14×14
+>         self.layer4 = self._make_layer(out_channels=512, num_blocks=3, stride=2)  # 512×7×7
+> ```
+> Run 面板此时已变成：`输入张量形状: torch.Size([1, 3, 224, 224])` / **`输出张量形状: torch.Size([1, 26])`** / `ResNet34 前向传播执行成功!` / `Process finished with exit code 0`。
+
+- **【尺寸链一次对齐】** 注释把整条链写死了，正好验证卡 43 的"总步长 32"：`3×224×224` —conv1(k7,s2,p3)→ `64×112×112` —maxpool(k3,s2,p1)→ `64×56×56` —layer1(s1)→ 不变 —layer2(s2)→ `128×28×28` —layer3(s2)→ `256×14×14` —layer4(s2)→ `512×7×7`。**五次减半，224 ÷ 2⁵ = 7。**
+- **【★ 别把这两个 CNN 搞混（用户刚问过的点）】** 本课 01:02:00 前后屏幕上那个 `SimpleCNN`（`Conv2d(3,16,k3,s1,p1) → ReLU → Conv2d(16,32,k3,s2,p1) → Linear(32*16*16,10)`）**一个 BatchNorm 都没有，卷积也都带默认 bias**；而这里真正的 ResNet34，首层就是 `Conv2d(..., bias=False)` + `BatchNorm2d(64)` 一应俱全。
+  两者的身份完全不同：**`SimpleCNN` 是维度演示道具**——它存在的唯一目的是让你在调试器里看见 `(2,3,32,32) → (2,16,32,32) → (2,32,16,16)` 这条形状链，以及 32×64 输入怎么把 `view` 撞爆（卡 23）；**`ResNet34` 才是网络设计范例**——它示范的是一个能训得动的真网络长什么样。
+  所以：**默写模板要抄 ResNet34 的配方（`Conv2d(bias=False) → BatchNorm2d → ReLU`），不要抄 SimpleCNN 的写法。** `bias=False` 的理由在卡 39 已经说过——后面 BN 的 β 会把偏置吸收掉，再留一个 bias 是纯浪费参数（而且两者会互相抵消，梯度上是冗余自由度）。
+- **【落到动作】** 打开你的 MNIST 默写模板，把每个 `nn.Conv2d(...)` 加上 `bias=False`，后面补一行 `nn.BatchNorm2d(out_ch)`。这是**这节课能立刻落地的最小改动**。
+
+---
+
+### 48 PPT 第 15 页：ResNet 论文 Figure 3 的三列对照（04:13:00 – 04:14:00）
+
+> **【画面 04_11_03】** 老师先在 Chrome 打开 `blog.roboflow.com/content/images/2020/09/image.png`——就是 ResNet 论文 Figure 3 的那张长图。
+> **【画面 04_12_46 / 04_12_52 / 04_13_08 / 04_13_34】** 他把图截进 PowerPoint `36-笔记.pptx` 的**第 15 张（共 15 张）**，左边放了一个蓝色小方块写着 `3*224*224`，然后放大到 60% 逐段讲。缩略图能看到前几页的标题：第 12 页「Tensor的计算、高维、代数」、第 13 页「交换维度」、第 14 页「面试问题：你的项目代码结构是？」（= 卡 36）。
+> 图上三列：**VGG-19 / 34-layer plain / 34-layer residual**；最左侧一列标注 `output size: 224 → 112 → 56 → 28 → 14 → 7`；plain 和 residual 两列的开头都是 `7x7 conv, 64, /2` + `pool, /2`；residual 一列每两个 conv 之间有一条**弧线**跨过去，其中一部分是**实线**，一部分是**虚线**（虚线全都出现在 `3x3 conv, 128, /2`、`3x3 conv, 256, /2`、`3x3 conv, 512, /2` 这些通道翻倍 + 步长为 2 的位置）。
+
+- **【实线 vs 虚线，一句话】** **实线 shortcut = 恒等映射，直接 `out + x`；虚线 shortcut = 形状对不上，要先用 1×1 卷积（stride=2）把 x 变形再加。** 虚线出现的位置和代码里 `stride != 1 or in_channels != out_channels` 这个条件**一一对应**（下一张卡就是代码实证）。
+- **【三列在讲什么】** VGG-19 是"没有 shortcut 的深网络"基线，plain-34 是"同样深但不加 shortcut"，residual-34 是"同样深且加 shortcut"。论文用 plain vs residual 这一对**控制变量实验**证明了卡 04 说的"退化"——不是过拟合，是纯粹的优化难。
+- **【★ 作者判断】** 老师把论文原图贴进自己的 PPT 再讲，这个动作本身值得学：**结构图是网络的"接口文档"，代码是"实现"，你必须能在两者之间来回指认。** 他接下来 5 分钟做的就是这件事——图上一根虚线，代码里对应哪个 `if`。
+- **【落到动作】** 把这张 Figure 3 存进你的 Obsidian，旁边贴上本卡的 `output size` 链。**面试问"ResNet34 有几次下采样"，你脑子里应该直接浮出这一列 224/112/56/28/14/7。**
+
+---
+
+### 49 虚线 shortcut 在代码里长什么样：那个 if 分支（04:14:00 – 04:15:40）
+
+> **【画面 04_14_04 / 04_14_37】** `resnet.py` 第 7–31 行，`class ResidualBlock(nn.Module)` 的 `__init__` 全文：
+> ```python
+> def __init__(self, in_channels, out_channels, stride=1):
+>     super(ResidualBlock, self).__init__()
+>     # 主路径：两层 3x3 卷积
+>     self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3,
+>                            stride=stride, padding=1, bias=False)
+>     self.bn1   = nn.BatchNorm2d(out_channels)
+>
+>     self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3,
+>                            stride=1, padding=1, bias=False)
+>     self.bn2   = nn.BatchNorm2d(out_channels)
+>
+>     # 捷径（shortcut）：若尺寸/通道不匹配，用1x1卷积下采样+调整通道
+>     self.shortcut = nn.Sequential()
+>     if stride != 1 or in_channels != out_channels:
+>         self.shortcut = nn.Sequential(
+>             nn.Conv2d(in_channels, out_channels, kernel_size=1,
+>                       stride=stride, bias=False),
+>             nn.BatchNorm2d(out_channels)
+>         )
+> ```
+> **【画面 04_15_15】** 往下滚，`# 输出层` 和 `_make_layer` 同屏：
+> ```python
+> self.avgpool = nn.AdaptiveAvgPool2d((1, 1))   # 全局平均池化 → 512×1×1
+> self.fc = nn.Linear(in_features=512, num_classes)   # 全连接分类
+>
+> def _make_layer(self, out_channels, num_blocks, stride):   # 4 usages
+>     """堆叠残差块：第一个块可能下采样，后续块步幅=1"""
+>     layers = []
+>     # 第一个残差块
+>     layers.append(ResidualBlock(self.in_channels, out_channels, stride))
+>     self.in_channels = out_channels
+>     # 剩余残差块
+>     for _ in range(1, num_blocks):
+>         layers.append(ResidualBlock(self.in_channels, out_channels))
+>     return nn.Sequential(*layers)
+> ```
+
+- **【图和码的一一对应】** 上一张卡图上的**实线** = `self.shortcut = nn.Sequential()`（空容器 = 恒等，`nn.Sequential()` 对输入原样返回）；**虚线** = 走进那个 `if`，换成 `Conv2d(1×1, stride=stride) + BN`。而 `if` 的两个条件正好覆盖两种不匹配：`stride != 1` 是**空间尺寸**对不上，`in_channels != out_channels` 是**通道数**对不上。
+- **【谁触发了 if】** 结合 `_make_layer`：每组的**第一个块**拿到的是 `(self.in_channels, out_channels, stride)`，layer2/3/4 的第一个块 stride=2 且通道翻倍 → 走 if（虚线）；layer1 的第一个块 stride=1 且 64→64 → 不走 if（实线）；**所有非第一个块**都是 `(out_channels, out_channels)` 默认 stride=1 → 一律实线。数一数：34 层里只有 3 条虚线，其余 13 条全是实线，和图上完全吻合。
+- **【★ 作者判断】** 这个 `nn.Sequential()` 当恒等用的写法很值得记——**比 `nn.Identity()` 更老派，但效果一样，而且省掉了一个 `if` 在 forward 里**。整个残差网络"要不要补丁"的判断被压缩进构造函数的两行，forward 永远只写 `out + self.shortcut(x)`。这是把分支从运行期挪到构造期的经典手法。
+- **【落到动作】** 拿一张纸，只凭"图上哪根线是虚的"把这个 `if` 的两个条件默写出来。写得出来，说明你真的把结构图和代码打通了（卡 05 的验收标准）。
+
+---
+
+### 50 屏幕手画：红框套四个绿框 + 一个打勾的输出层（04:15:40 – 04:18:40）
+
+> **【画面 04_15_52 / 04_16_54 / 04_17_51 / 04_18_05】** 老师用屏幕批注笔（左下角出现「老斜」标签）在 `resnet.py` 的**右侧空白区**画了一张分块示意图，画面上代码保持在 `_make_layer` 那一屏不动：
+> - 最外层一个**大红框**（= 整个 ResNet34）；
+> - 大红框内**上方一个小红框**，正好框住 `layer3 / layer4` 那两行带 `stride=2` 和 `# 256×14×14`、`# 512×7×7` 注释的代码（= 网络的配置区）；
+> - 中间一个**红框里套四个等高的绿框**（= layer1 / layer2 / layer3 / layer4 四组残差层）；
+> - 最底下**另起一个红框**，旁边打了一个大红**对勾 ✓**（= 输出层 avgpool + fc）；
+> - 04:16:54 起他在第一个绿框右上角画箭头并打勾；04:17:51 在第一个绿框内部画了一个**来回绕的闭合环 + 一个出箭头**（= 那个绿框里面还要重复堆 N 个残差块，就是 `for _ in range(1, num_blocks)` 那个循环）。
+
+- **【这张图在说什么】** 它把 ResNet34 压成**三层嵌套**：网络 = 4 个 layer 组 + 1 个输出层；每个 layer 组 = N 个 ResidualBlock（那个环）；每个 ResidualBlock = 2 层卷积 + 1 条 shortcut（卡 41 / 卡 49）。**三层嵌套里，代码只写了两层——第二层用 `for` 循环生成，第三层用一个类封装。**
+- **【为什么老师要手画】** 因为 `_make_layer` 那 6 行代码看不出"层级"。`self.layer1 = self._make_layer(...)` 这一行的展开结果是 3 个 block、6 层卷积，而屏幕上只占一行。**画框是在把折叠掉的结构重新摊开。** 这正是卡 11 那句"封装成 block 再堆"的可视化版本。
+- **【★ 作者判断】** 这三分钟没有一句话，但它是整段最值钱的画面。**"红框套绿框套循环"就是所有现代 backbone 的通用形状**——YOLOv8 是 `Conv + C2f` 交替 4 组、mmdet3d 的 `SECOND` 是 `layer_nums=[5,5]` 两组，画出来一模一样。你以后看任何 backbone 配置，脑子里应该先浮出这张框图，再去对参数。
+- **【落到动作】** 照着这张图**自己画一遍 YOLOv8n 的分块图**：外框 = 整网，内层四个绿框 = P2/P3/P4/P5 四个 stage，每个绿框里标 C2f 的重复次数 `n`。画完对照 `yolov8.yaml` 检查——这就是你的"看图 ↔ 看码"练习题。
+
+---
+
+### 51 forward 三段式 + 现场加一个 Softmax，debug 看 (1,26) 概率（04:18:40 – 04:20:03）
+
+> **【画面 04_18_49】** `resnet.py` 第 74–93 行 `forward` 全文，注释把三段切得明明白白：
+> ```python
+> def forward(self, x):
+>     """ResNet34 完整前向传播过程"""
+>     # 1. 首层卷积+池化
+>     x = F.relu(self.bn1(self.conv1(x)))
+>     x = self.maxpool(x)
+>
+>     # 2. 4组残差层核心前向传播
+>     x = self.layer1(x); x = self.layer2(x); x = self.layer3(x); x = self.layer4(x)
+>
+>     # 3. 全局平均池化 + 展平 + 全连接
+>     x = self.avgpool(x)
+>     x = torch.flatten(x, 1)      # 展成一维向量
+>     x = self.fc(x)
+>     return x
+> ```
+> **【画面 04_19_16 / 04_19_44】** 老师在 `__init__` 的 `self.fc` 下面**现敲一行**（代码补全弹窗都拍到了）：`self.softmax = nn.Softmax(dim=1)`，并在 `forward` 的 `x = self.fc(x)` 后面加上 `x = self.softmax(x)`。
+> **【画面 04_20_04】** 在 `return x` 前打断点、Debug 运行，变量面板：
+> `x = {Tensor: (1, 26)} tensor([[0.0484, 0.0205, 0.0357, 0.0211, 0.0258, 0.0218, 0.0138, 0.2109, 0.0423, …, 0.0314, 0.0484, 0.0295, 0.0179, 0.02…, 0.0424, 0.0265, …, 0.0338, 0.0477, 0.0311…]])`；顶栏悬浮提示 `self: ResNet34(\n (conv1): Conv2d(3, 64, kernel_size=(7,7), stride=(2,2), padding=(3,3), bias=False)\n (bn1): BatchNorm2d(...)`；调用栈 `forward, resnet.py:95 ← _call_impl ← _wrapped_call_impl`。
+
+- **【三段式的最终确认】** `forward` 的三段注释和卡 39 说的 **stem / backbone / head** 完全对应。注意 `torch.flatten(x, 1)`——`avgpool` 出来是 `(1,512,1,1)`，flatten 从第 1 维起压成 `(1,512)`，这就是卡 24 那个 `x.view(x.shape[0], -1)` 的官方等价写法（也是纠错表 B-7 的注脚：函数式 flatten 可以被 view 替代）。
+- **【那 26 个数说明了什么】** 未训练的随机权重，26 个概率大致均匀（≈1/26 ≈ 0.038），但有一个 **0.2109** 明显冒头——这就是随机初始化的噪声，**不是模型"学到了"什么**。它们加起来等于 1，这是 `Softmax(dim=1)` 沿类别维归一化的直接证据（`dim=1` 就是卡 35 那套"带 dim 的算子按哪个维分组"）。
+- **【★ 作者判断（这里有个坑，老师没点破）】** **训练时千万别把这个 Softmax 留在网络里。** PyTorch 的 `nn.CrossEntropyLoss` 内部已经做了 `log_softmax`，你在 forward 里再 softmax 一次，等于做了两次——梯度会被压得极小，模型训不动，而且**不报错**。正确做法是：**forward 只返回 logits，softmax 只在推理/看概率时手动调**。老师这行是为了在调试器里让你"看见概率"，是演示代码，不是训练代码。（同理，这个数据集的标签是 one-hot 多列，若做多标签应配 `BCEWithLogitsLoss`，它同样自带 sigmoid。）
+- **【落到动作】** 在你的 `resnet.py` 里，把 `self.softmax` 那两行**注释掉并写上理由**（`# 训练时不要 softmax，CrossEntropyLoss 自带 log_softmax`）。这条注释以后能救你至少一次通宵。
+
+---
+
+### 52 相对路径与 PyCharm 工作目录：no such file 的根因（04:27:15 – 04:31:20）
+
+> **谢博**：「`no such file`——这不就很常见了吗？那路径要怎么样才对呢？这个路径看你这里有个运行配置，运行配置里面看到没有，这里面有个工作目录。**这个工作目录是你这个里面所有的相对路径的起点，基础路径。**那我如果这样子写的话，那我的路径是这样子的：这是相对路径，然后这里再接上这个相对路径。……我们一般如果是作为一个项目的话，我们这个工作目录会统一设置成项目的路径。不会像现在这样。你如果不设，PyCharm 会默认把你这个文件所在的那个目录设置为你的工作目录。」
+
+- **【推导/代码】** 关键三条：① 相对路径的基准是**进程的当前工作目录（cwd）**，不是脚本所在目录；② PyCharm 的 Run Configuration 里有个 `Working directory` 字段，不填就默认为脚本所在目录；③ **项目应统一把工作目录设成项目根目录**，这样所有脚本里的相对路径写法一致。老师现场演示的修复是把 `dataset/Vegetable/train` 改成 `../../dataset/Vegetable/train`（因为脚本在 `src/veg/` 下）。
+- **【为什么】** 老师说"这个就是经常出错，直到你错了好几次之后，可能你才会意识到这个问题"。这是个纯工程坑，但吃掉的时间不比算法少。
+- **【连接】** 更稳的写法是用 `pathlib`：`ROOT = Path(__file__).resolve().parents[2]` 然后 `ROOT / "dataset/Vegetable/train"`——**跟工作目录彻底解耦**。你在 4060 服务器上用 ssh 跑脚本时 cwd 经常不是你以为的那个目录，这一招能省很多事。
+
+---
+
+### 53 Dataset 三件套与 pandas 解析标签（04:31:30 – 04:35:00）
 
 > **谢博**：「这里它创建了一个数据类，这个类就是我们定义的做数据处理的。那数据类处理，我们说按照我们标准的做法——不是我给你们提供的，是 PyTorch 提供的——这里是不是就三个方法呀？`__len__` 是不是返回数据集的样本数？那你现在这个数据集有多少个样本呢？看这里 18591。`__getitem__` 其实图片没什么好读的，主要是标签的解析。首先你要把所有图片名都读进来，第二个是你要解析标签。」
 
@@ -693,7 +881,7 @@ tags: [智谷36期, Tensor维度运算, view, reshape, permute, transpose, Batch
 
 ---
 
-### 46 transform 与那个必须改掉的 Normalize（04:32:45 – 04:34:00）
+### 54 transform 与那个必须改掉的 Normalize（04:32:45 – 04:34:00）
 
 > **谢博**：「这个 transform 是做图像变形的：resize、转成 tensor、还有 normalize。normalize 他提供了什么呢？提供了这个均值和方差。这个你就不要用了——**这个做 normalize 的时候均值和方差，他是按照 ImageNet 的标准去做的，跟你这个不一样。**这个时候可能就有问题了，这个你可以改掉他，删掉也可以。你可以直接除以 255 就可以了呀，这是最简单的做法。」
 
@@ -715,17 +903,7 @@ tags: [智谷36期, Tensor维度运算, view, reshape, permute, transpose, Batch
 
 ---
 
-### 47 相对路径与 PyCharm 工作目录：no such file 的根因（04:27:15 – 04:31:20）
-
-> **谢博**：「`no such file`——这不就很常见了吗？那路径要怎么样才对呢？这个路径看你这里有个运行配置，运行配置里面看到没有，这里面有个工作目录。**这个工作目录是你这个里面所有的相对路径的起点，基础路径。**那我如果这样子写的话，那我的路径是这样子的：这是相对路径，然后这里再接上这个相对路径。……我们一般如果是作为一个项目的话，我们这个工作目录会统一设置成项目的路径。不会像现在这样。你如果不设，PyCharm 会默认把你这个文件所在的那个目录设置为你的工作目录。」
-
-- **【推导/代码】** 关键三条：① 相对路径的基准是**进程的当前工作目录（cwd）**，不是脚本所在目录；② PyCharm 的 Run Configuration 里有个 `Working directory` 字段，不填就默认为脚本所在目录；③ **项目应统一把工作目录设成项目根目录**，这样所有脚本里的相对路径写法一致。老师现场演示的修复是把 `dataset/Vegetable/train` 改成 `../../dataset/Vegetable/train`（因为脚本在 `src/veg/` 下）。
-- **【为什么】** 老师说"这个就是经常出错，直到你错了好几次之后，可能你才会意识到这个问题"。这是个纯工程坑，但吃掉的时间不比算法少。
-- **【连接】** 更稳的写法是用 `pathlib`：`ROOT = Path(__file__).resolve().parents[2]` 然后 `ROOT / "dataset/Vegetable/train"`——**跟工作目录彻底解耦**。你在 4060 服务器上用 ssh 跑脚本时 cwd 经常不是你以为的那个目录，这一招能省很多事。
-
----
-
-### 48 数据集必须自己检查：3 分算法 7 分数据（04:42:50 – 04:48:30）
+### 55 数据集必须自己检查：3 分算法 7 分数据（04:42:50 – 04:48:30）
 
 > **谢博**：「首先你要审查一下他的数据集有没有问题。这里总共有 18591 个图片，但实际上这里面没有这么多行呢？这些你只要去检查呀。为什么呢？都是被这个手写数字给你惯坏了——手写数字数据所有的问题都不需要考虑，因为它就是一个最标准的。……这里面会不会存在有些非法格式的标签呢？比如说这里有个文件名，但是没有这张图片，他搞错了。万一这里面出个数字，万一这里面少个零呢？总共是 26 个，结果他有一行只 25 个，有没有这种情况？都有啊。……做算法如果真是做项目的话，**3 分算法 7 分数据**。我如果这个指标优化提升了比如说 30%，可能其中有 70% 是靠数据集优化上去的。」
 
@@ -735,7 +913,7 @@ tags: [智谷36期, Tensor维度运算, view, reshape, permute, transpose, Batch
 
 ---
 
-### 49 断点验证：image 和 label 到底对没对上（04:52:00 – 05:01:20）
+### 56 断点验证：image 和 label 到底对没对上（04:52:00 – 05:01:20）
 
 > **谢博**：「这个时候你要查什么呢？你要查这个 image 和这些标签是不是对上了。在这里有个问题：你不知道这 8 个样本来自哪里，你检查不出来。这个时候你可以在这里打个断点。for 一下，PyTorch 是不是会反复给你调这个方法？取一个样本。那你看现在 index 这个——为什么是这个呢？因为他的下标打乱了（shuffle）。……labels 这个 index 是 9404，那从这个 labels 里面取 labels[9404]。好，我这里看一下他的标签，前面 0,0,0,0,0,1……那图片是哪张图片呢？……然后这里是什么呢？我们看到 label，1、2、3、4、5、6，所以他解析没错，就是他们对上了。」
 
@@ -746,7 +924,7 @@ tags: [智谷36期, Tensor维度运算, view, reshape, permute, transpose, Batch
 
 ---
 
-**【小结】** ① 项目代码结构就是那 8 个目录，能背出来 + 有一个真实工程佐证（ultralytics 就是最好的样本）。② ResNet34 = stem + `[3,4,6,3]` 个 ResidualBlock + GAP/FC，34 = 1 + 16×2 + 1；`_make_layer` 的签名 `(out_channels, num_blocks, stride)` 是所有 backbone 的通用写法；总下采样 32 决定了输入必须是 32 的倍数。③ Dataset 三件套 + pandas 解析标签 + 断点验证图文对应 + 训练前做数据检查，这四件事构成一个可复用的工程闭环。
+**【小结】** ① 项目代码结构就是那 8 个目录，能背出来 + 有一个真实工程佐证（ultralytics 就是最好的样本）。② ResNet34 = stem + `[3,4,6,3]` 个 ResidualBlock + GAP/FC，34 = 1 + 16×2 + 1；`_make_layer` 的签名 `(out_channels, num_blocks, stride)` 是所有 backbone 的通用写法；总下采样 32 决定了输入必须是 32 的倍数。③ **论文 Figure 3 上的实线/虚线 shortcut，在代码里就是 `if stride != 1 or in_channels != out_channels` 这一个判断**——看图能指认到代码，才叫看懂（卡 48–49）。④ 真网络的卷积配方是 `Conv2d(bias=False) → BatchNorm2d → ReLU`；前半场那个 `SimpleCNN` 没有 BN，它是维度演示道具，不是设计范例，两者别混（卡 47）。⑤ 用 AI 生成的模板，唯一必须你自己改的数是 `num_classes`，而这个数**要从数据里算，不能问模型**——本课豆包就把它数错了（卡 46 / B-5）；同理，训练前记得把演示用的 `nn.Softmax` 拆掉（卡 51 / B-9）。⑥ Dataset 三件套 + pandas 解析标签 + 断点验证图文对应 + 训练前做数据检查，这四件事构成一个可复用的工程闭环。
 
 ---
 
@@ -785,6 +963,7 @@ tags: [智谷36期, Tensor维度运算, view, reshape, permute, transpose, Batch
 | 小龙虾 / 小螺蛇 / openclaw | **Claude Code（AI 编程工具）** | 04:24:02、04:39:54 |
 | 数字系统性听错：i / 爱 = 2，33 = 32，30i = 32，i4 = 224，s5 = 25，s6 = 26 | 见正文各处已按画面还原 | 全场 ⚠ |
 | 长段"请不吝点赞 订阅 转发…明镜与点点栏目" | **Whisper 幻觉**（长静音处），实际是 01:47:00–02:00:01、02:41:00–02:44:04、03:10:00–03:20:10 的空白 | ⚠ |
+| 孤立数字串"7 7 8 9 9"、希伯来字符 `ות`、连续字母 `g g g g` | **Whisper 幻觉**（老师全程指屏幕不出声）。**04:10:20–04:20:03 整段语音不可用**，卡 45–51 完全由抽帧还原，引用一律标 `【画面 04_xx_xx】` | ⚠ 本课第四段幻觉区 |
 
 ### B. 老师真口误 / 表述不严谨（面试别照搬）
 
@@ -794,7 +973,8 @@ tags: [智谷36期, Tensor维度运算, view, reshape, permute, transpose, Batch
 | B-2 | 01:00:26 | 对 `(2,16,32,32)` 做 BN，"取出来就有 32×32 个数" | **2×32×32 = 2048 个数**（漏了 batch 维）。老师两分钟后自己纠正了 |
 | **B-3**★ | 00:49:16 | "无论训练还是推理，前向传播一模一样，除非你人为地搞成不一样" | **BN 就是"人为搞成不一样"的典型**：训练用当前 batch 统计量并更新 running_mean/var，推理用累计的 running 统计量。问"BN 训练和推理有什么区别"必须答双模式 + `model.eval()` |
 | B-4 | 01:16:39 | "神经网络可以处理图片、文本、声音、视频……这就叫多模态" | 单模态模型各自能处理多种数据**不叫**多模态；多模态指**同一模型同时融合多种模态**。老师随后自己补正了 |
-| B-5 | 04:11:43 | 类别数改成 26 | **25 类**（【画面】Run 输出 `标签长度: torch.Size([25])`）。老师 04:50:01 自己数 CSV 列时发现"豆包给的是错误信息"，但没数完 |
+| **B-5**★ | 04:11:43 | 采信豆包"总标签项数 = 26"，把 `num_classes` 改成 26 | **25 类。**【画面 04_11_57】豆包原文：`逗号总数：25 个 / 总标签项数 = 26 个 / 逗号数 = 项数 - 1 = 26 - 1 = 25`——名单实为 **25 项、24 个逗号**，两个数都错，还用减法把两个错互相圆上了。真值锚点：Run 输出 `标签长度: torch.Size([25])`。老师 04:50:01 自己数 CSV 列时发现"豆包给的是错误信息"，但没数完。**类别数要用 `len(df.columns)-1` 从数据里算，不要问模型**（见卡 46） |
+| B-9 | 04:19:44 | 在 `__init__` 里加 `self.softmax = nn.Softmax(dim=1)`，forward 里 `x = self.softmax(x)` | 演示概率没问题，但**训练时必须去掉**：`nn.CrossEntropyLoss` 内部已含 `log_softmax`，再 softmax 一次会把梯度压没，且**不报错**。规范做法：forward 只返回 logits（见卡 51） |
 | B-6 | 04:32:28 | "看这里 1859，就 18000 了" | **18591 张**（【画面】`数据集总数量: 18591`）。口误，量级没错 |
 | B-7 | 02:52:15 | "flatten 你就不要去学了" | 教学取舍没错，但 **`nn.Flatten()` 是 Module，能放进 `nn.Sequential`，`view` 不能**。函数式 `torch.flatten(x,1)` 才可被 view 替代 |
 | B-8 | 03:57:34 | ResNet 首层 7×7 卷积"其实有点太大了" | 7×7 s2 是 ResNet 有意设计的 stem（大核快速拿感受野）。后来 YOLO/ResNet-D 改用 3 个 3×3 堆叠替代，是**演进**不是"原设计有问题" |
@@ -808,13 +988,14 @@ tags: [智谷36期, Tensor维度运算, view, reshape, permute, transpose, Batch
 | **精听** | 00:55:00 – 01:10:25 | Normalize 的"一堆数"原则 + BN 按通道切 + 为什么按通道 | 一句话打通所有 Norm 变体，性价比最高的 15 分钟 |
 | **精听** | 01:25:01 – 01:47:00 | 输入尺寸翻车现场 + view 三规则 + `x.view(x.shape[0], -1)` | 你以后 80% 的形状 bug 都在这一段被解释掉 |
 | **精听** | 02:00:01 – 02:40:00 | 合并/拆分维度 + 组织架构模型 + 索引换算 x[0,3,5]→y3[0,14,1] | **本课最值钱的 40 分钟**，BEV 维度运算的地基 |
-| **精听** | 03:55:02 – 04:10:00 | ResNet34 三段式 + `_make_layer` + 全局平均池化 + 32 的倍数 | 你的课程产出3 的骨架，直接可抄 |
-| **精听** | 04:20:03–04:35:00 & 04:50:01–05:02 | Dataset 三件套 + 工作目录 + 断点验证图文对应 | 训练管线里唯一不能靠 AI 代写的部分 |
+| **精听** | 03:55:02 – 04:10:20 | ResNet34 三段式 + `_make_layer` + 全局平均池化 + 32 的倍数 | 你的课程产出3 的骨架，直接可抄 |
+| **只看画面（重要）** | 04:10:20 – 04:20:03 | 改 num_classes / 论文 Figure 3 实线虚线 / shortcut 的 `if` / 手画分块图 / 加 Softmax | **语音全是幻觉，必须开着视频看**。这 10 分钟是"结构图 ↔ 代码"互相指认的完整示范，对应卡 45–51 |
+| **精听** | 04:27:15–04:35:00 & 04:50:01–05:02 | 工作目录与相对路径 + Dataset 三件套 + 断点验证图文对应 | 训练管线里唯一不能靠 AI 代写的部分 |
 | 正常听 | 00:12:01 – 00:45:01 | DenseNet：cat vs add、通道爆炸、Transition、注意力雏形 | DenseNet 本身已少用，重点是 cat/add 那一段 |
 | 正常听 | 02:44:04 – 02:58:00 | transpose / permute 的索引换算 | 规则简单（坐标置换），跟着算一遍就够 |
 | 正常听 | 03:20:10 – 03:30:00 | 项目代码结构面试题 + ultralytics 佐证 | 不难但必须脱口而出，建议整理成卡片背 |
 | 只看画面 | 01:11:01 – 01:20:04 | Transformer 结构图 | 转写几乎全废；PDF 上的 `Normalization(F(x)+x)`、`d_model=512`、`FFN(x)=max(0,xW₁+b₁)W₂+b₂`、`d_ff=2048` 才是干货 |
-| 可跳 | 00:00:00–00:12:01 / 03:30:00–03:43:03 / 04:24:01–04:31:01 / 04:36:00–04:41:03 | 复习 / Roboflow 页面浏览 / 装 pandas 排错 / 两会闲聊 | 重复或纯闲聊 |
+| 可跳 | 00:00:00–00:12:01 / 03:30:00–03:43:03 / **04:24:01–04:27:15** / 04:36:00–04:41:03 | 复习 / Roboflow 页面浏览 / 装 pandas 排错 / 两会闲聊 | 重复或纯闲聊。**注意：原先把"可跳"写到 04:31:01，与卡 52（04:27:15–04:31:20 工作目录）冲突，已收窄到 04:27:15** |
 | 可跳（无内容） | 01:47:00–02:00:01 / 02:58:00–03:08:12 / 03:10:00–03:20:10 | 静音 / 休息 | 转写全是幻觉字符 ⚠ |
 
 ### 复习最小集（能背下这三句，这节课就没白上）

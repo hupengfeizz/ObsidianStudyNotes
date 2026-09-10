@@ -2,5 +2,6 @@
   "cssTheme": "Blue Topaz",
   "theme": "obsidian",
   "showRibbon": true,
-  "baseFontSize": 10
+  "baseFontSize": 14,
+  "baseFontSizeAction": true
 }
